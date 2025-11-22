@@ -1,7 +1,7 @@
-# Assignment 4: Global Illumination
+# Assignment 3: Global Illumination
 
-Name:  
-Student ID:  
+Name:  许长贵
+Student ID: 2022533095 
 
 **Please write your Chinese name and your student ID in this README.**
 
@@ -18,3 +18,4 @@ Refer to [course page](https://faculty.sist.shanghaitech.edu.cn/faculty/liuxp/co
 The skeleton program and report template will be provided once you accept the assignment link of GitHub classroom which we published in piazza. If you accept the assignment through link properly, a repository which contains the skeleton project and report template will be created under your GitHub account. Please follow the template to prepare your report.
 
 You should complete your assignment submission to your repository through GitHub before the deadline.
+
