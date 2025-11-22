@@ -133,7 +133,7 @@ typename BVHTree<_>::IndexType BVHTree<_>::build(
   for (IndexType span_index = span_left; span_index < span_right; ++span_index)
     prebuilt_aabb.unionWith(nodes[span_index].getAABB());
 
-  // TODO: setup the stop criteria
+  // TODO(HW3): setup the stop criteria
   //
   // You should fill in the stop criteria here.
   //
@@ -143,8 +143,8 @@ typename BVHTree<_>::IndexType BVHTree<_>::build(
   // @see span_left: The left index of the current span
   // @see span_right: The right index of the current span
   //
-  /* if ( */ UNIMPLEMENTED; /* ) */
-  {
+  IndexType count = span_right - span_left;
+  if (count <= 4 || depth >= CUTOFF_DEPTH) {
     // create leaf node
     const auto &node = nodes[span_left];
     InternalNode result(span_left, span_right);
@@ -163,7 +163,6 @@ typename BVHTree<_>::IndexType BVHTree<_>::build(
 
   // const int &dim = depth % 3;
   const int &dim  = ArgMax(prebuilt_aabb.getExtent());
-  IndexType count = span_right - span_left;
   IndexType split = INVALID_INDEX;
 
   if (hprofile == EHeuristicProfile::EMedianHeuristic) {
@@ -181,7 +180,16 @@ use_median_heuristic:
     //
     // You may find `std::nth_element` useful here.
 
-    UNIMPLEMENTED;
+    auto nth_it_begin = nodes.begin() + span_left;
+    auto nth_it_mid   = nodes.begin() + split;
+    auto nth_it_end   = nodes.begin() + span_right;
+
+    std::nth_element(nth_it_begin, nth_it_mid, nth_it_end,
+        [dim](const NodeType &a, const NodeType &b) {
+          // getAABB().getCenter() expected to return a vector-like type
+          // with operator[]; this matches other usage of getExtent()/ArgMax.
+          return a.getAABB().getCenter()[dim] < b.getAABB().getCenter()[dim];
+        });
 
     // clang-format on
   } else if (hprofile == EHeuristicProfile::ESurfaceAreaHeuristic) {
@@ -199,7 +207,8 @@ use_surface_area_heuristic:
     //
     // You can then set @see BVHTree::hprofile to ESurfaceAreaHeuristic to
     // enable this feature.
-    UNIMPLEMENTED;
+    hprofile = EHeuristicProfile::EMedianHeuristic;
+    goto use_median_heuristic;
   }
 
   // Build the left and right subtree
