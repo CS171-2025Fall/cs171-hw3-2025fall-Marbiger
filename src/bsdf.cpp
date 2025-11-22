@@ -3,6 +3,7 @@
 #include "rdr/fresnel.h"
 #include "rdr/interaction.h"
 #include "rdr/math_aliases.h"
+#include "rdr/math_utils.h"
 #include "rdr/platform.h"
 
 RDR_NAMESPACE_BEGIN
@@ -43,13 +44,13 @@ Vec3f IdealDiffusion::evaluate(SurfaceInteraction &interaction) const {
 
 Float IdealDiffusion::pdf(SurfaceInteraction &interaction) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return 0;
 }
 
 Vec3f IdealDiffusion::sample(
     SurfaceInteraction &interaction, Sampler &sampler, Float *out_pdf) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0.0, 0.0, 0.0};
 }
 
 /// return whether the bsdf is perfect transparent or perfect reflection
@@ -104,11 +105,13 @@ Vec3f PerfectRefraction::sample(
   // @see Refract for refraction calculation.
   // @see Reflect for reflection calculation.
 
-  UNIMPLEMENTED;
-
+  bool is_refract = Refract(interaction.wo, normal, eta_corrected, interaction.wi);
+  if (is_refract == false) {
+    interaction.wi = Reflect(interaction.wo, normal);
+  }
   // Set the pdf and return value, we dont need to understand the value now
   if (pdf != nullptr) *pdf = 1.0F;
-  return Vec3f(1.0);
+  return Vec3f(1.0f);
 }
 
 bool PerfectRefraction::isDelta() const {
@@ -140,7 +143,7 @@ Float Glass::pdf(SurfaceInteraction &) const {
 Vec3f Glass::sample(
     SurfaceInteraction &interaction, Sampler &sampler, Float *pdf) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0.0, 0.0, 0.0};
 }
 
 bool Glass::isDelta() const {
@@ -176,18 +179,18 @@ MicrofacetReflection::MicrofacetReflection(const Properties &props)
 
 Vec3f MicrofacetReflection::evaluate(SurfaceInteraction &interaction) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0.0, 0.0, 0.0};
 }
 
 Float MicrofacetReflection::pdf(SurfaceInteraction &interaction) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return 0;
 }
 
 Vec3f MicrofacetReflection::sample(
     SurfaceInteraction &interaction, Sampler &sampler, Float *pdf_in) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0.0, 0.0, 0.0};
 }
 
 /// return whether the bsdf is perfect transparent or perfect reflection

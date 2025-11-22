@@ -82,7 +82,7 @@ void NativeRender::preprocess() {
     cobject->preprocess(preprocess_context);
 
   // Debug info
-#if false
+#if true
   for (ConfigurableObject *cobject : global_context)
     Info_("{}", cobject->toString());
 #endif

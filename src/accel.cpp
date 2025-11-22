@@ -43,7 +43,24 @@ bool AABB::intersect(const Ray &ray, Float *t_in, Float *t_out) const {
   //    for getting the inverse direction of the ray.
   // @see Min/Max/ReduceMin/ReduceMax
   //    for vector min/max operations.
-  UNIMPLEMENTED;
+
+  const Vec3f &inv_dir = ray.safe_inverse_direction;
+
+  Vec3f t0 = (low_bnd   - ray.origin) * inv_dir;
+  Vec3f t1 = (upper_bnd - ray.origin) * inv_dir;
+
+  Vec3f t_min_v = Min(t0, t1);
+  Vec3f t_max_v = Max(t0, t1);
+
+  Float t_enter = Max(ReduceMax(t_min_v), ray.t_min);
+  Float t_exit  = Min(ReduceMin(t_max_v), ray.t_max);
+
+  if (t_enter > t_exit) return false;
+
+  if (t_in)  *t_in = t_enter;
+  if (t_out) *t_out = t_exit;
+
+  return true;
 }
 
 /* ===================================================================== *
@@ -92,10 +109,37 @@ bool TriangleIntersect(Ray &ray, const uint32_t &triangle_index,
   // You can use @see Cross and @see Dot for determinant calculations.
 
   // Delete the following lines after you implement the function
+  
   InternalScalarType u = InternalScalarType(0);
   InternalScalarType v = InternalScalarType(0);
   InternalScalarType t = InternalScalarType(0);
-  UNIMPLEMENTED;
+  
+  InternalVecType edge1 = v1 - v0;
+  InternalVecType edge2 = v2 - v0;
+
+  InternalVecType pvec = Cross(dir, edge2);
+  InternalScalarType det = Dot(edge1, pvec);
+
+  InternalScalarType eps = InternalScalarType(EPS);
+  // 不做背面剔除：绝对值太小视为平行
+  if (det > -eps && det < eps)
+    return false;
+
+  InternalScalarType invDet = InternalScalarType(1) / det;
+
+  InternalVecType tvec = Cast<InternalScalarType>(ray.origin) - v0;
+  u = Dot(tvec, pvec) * invDet;
+  if (u < InternalScalarType(0) || u > InternalScalarType(1))
+    return false;
+
+  InternalVecType qvec = Cross(tvec, edge1);
+  v = Dot(dir, qvec) * invDet;
+  if (v < InternalScalarType(0) || u + v > InternalScalarType(1))
+    return false;
+
+  t = Dot(edge2, qvec) * invDet;
+  if (!ray.withinTimeRange(static_cast<Float>(t)))
+    return false;
 
   // We will reach here if there is an intersection
 
@@ -107,6 +151,7 @@ bool TriangleIntersect(Ray &ray, const uint32_t &triangle_index,
   assert(ray.withinTimeRange(t));
   ray.setTimeMax(t);
   return true;
+  
 }
 
 void Accel::setTriangleMesh(const ref<TriangleMeshResource> &mesh) {

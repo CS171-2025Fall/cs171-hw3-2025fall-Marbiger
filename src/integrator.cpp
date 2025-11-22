@@ -58,11 +58,14 @@ void IntersectionTestIntegrator::render(ref<Camera> camera, ref<Scene> scene) {
         // following lines to accumulate the radiance to the film.
         //
         //
+        const Vec2f &pixel_sample = sampler.getPixelSample();  
+        auto ray = camera->generateDifferentialRay(pixel_sample.x, pixel_sample.y);  
+
         // Accumulate radiance
-        // assert(pixel_sample.x >= dx && pixel_sample.x <= dx + 1);
-        // assert(pixel_sample.y >= dy && pixel_sample.y <= dy + 1);
-        // const Vec3f &L = Li(scene, ray, sampler);
-        // camera->getFilm()->commitSample(pixel_sample, L);
+        assert(pixel_sample.x >= dx && pixel_sample.x <= dx + 1);
+        assert(pixel_sample.y >= dy && pixel_sample.y <= dy + 1);
+        const Vec3f &L = Li(scene, ray, sampler);  
+        camera->getFilm()->commitSample(pixel_sample, L); 
       }
     }
   }
@@ -104,7 +107,11 @@ Vec3f IntersectionTestIntegrator::Li(
       // @see SurfaceInteraction::spawnRay
       //
       // You should update ray = ... with the spawned ray
-      UNIMPLEMENTED;
+
+      // sample to get new refraction direction
+      //Float *pdf;
+      interaction.bsdf->sample(interaction, sampler, nullptr);
+      ray = interaction.spawnRay(interaction.wi);
       continue;
     }
 
@@ -131,7 +138,7 @@ Vec3f IntersectionTestIntegrator::directLighting(
   Vec3f color(0, 0, 0);
   Float dist_to_light = Norm(point_light_position - interaction.p);
   Vec3f light_dir     = Normalize(point_light_position - interaction.p);
-  auto test_ray       = DifferentialRay(interaction.p, light_dir);
+  auto test_ray       = DifferentialRay(interaction.p, light_dir, RAY_DEFAULT_MIN, dist_to_light);
 
   // TODO(HW3): Test for occlusion
   //
@@ -148,7 +155,14 @@ Vec3f IntersectionTestIntegrator::directLighting(
   //
   //    You can use iteraction.p to get the intersection position.
   //
-  UNIMPLEMENTED;
+  
+  bool occluded = scene->intersect(test_ray, interaction);
+  if (occluded) {
+    return color;
+  }
+  //Ray new_ray(interaction.p, light_dir, RAY_DEFAULT_MIN, dist_to_light);
+  //if (scene->intersect(new_ray, interaction)) return color;
+  
 
   // Not occluded, compute the contribution using perfect diffuse diffuse model
   // Perform a quick and dirty check to determine whether the BSDF is ideal
@@ -166,11 +180,12 @@ Vec3f IntersectionTestIntegrator::directLighting(
 
     // The angle between light direction and surface normal
     Float cos_theta =
-        std::max(Dot(light_dir, interaction.normal), 0.0f);  // one-sided
-
-    // You should assign the value to color
-    // color = ...
-    UNIMPLEMENTED;
+      std::max(Dot(light_dir, interaction.normal), 0.0f);  // one-sided
+      // You should assign the value to color
+      // color = ...
+    
+      auto albedo = bsdf->evaluate(interaction) * cos_theta;
+      color = albedo * point_light_flux / (4 * PI * dist_to_light * dist_to_light);
   }
 
   return color;
@@ -190,13 +205,13 @@ void PathIntegrator::render(ref<Camera> camera, ref<Scene> scene) {
 Vec3f PathIntegrator::Li(
     ref<Scene> scene, DifferentialRay &ray, Sampler &sampler) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0, 0, 0};
 }
 
 Vec3f PathIntegrator::directLighting(
     ref<Scene> scene, SurfaceInteraction &interaction, Sampler &sampler) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0, 0, 0};
 }
 
 /* ===================================================================== *
@@ -218,7 +233,7 @@ template <typename PathType>
 Vec3f IncrementalPathIntegrator::Li(  // NOLINT
     ref<Scene> scene, DifferentialRay &ray, Sampler &sampler) const {
   // This is left as the next assignment
-  UNIMPLEMENTED;
+  return {0, 0, 0};
 }
 
 RDR_NAMESPACE_END
